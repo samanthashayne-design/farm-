@@ -10,7 +10,49 @@ let playBtn, prevBtn, plantCropsBtn, tendGardenBtn;
 let seedCards = [];
 let selectedCrop = '';
 let shovelBtn, wateringCanBtn;
-let plotStage = 'empty'; // 'empty' -> 'dug' -> 'planted'
+let plotStage = 'empty'; 
+let startTag = 175
+
+const plotCrops = ['sunflower', 'carrots', 'cabbage', 'tomatoes'];
+
+let startX, endX, squareSize;
+const y = 275;
+const plotCount = 4;
+const gap = 60;
+
+// const startX = 150;
+//   const endX = 1400;
+//   const y = 275;
+
+  // const plotCount = 4;
+  // const gap = 60; // gap between squares
+  // const squareSize = (endX - startX - gap * (plotCount - 1)) / plotCount;
+
+let dirtGap = 50;
+let totalDirt = 5;
+// let count1 = 0;
+// let count2 = 0;
+// let count3 = 0;
+// let count4 = 0;
+let frameDelay = 5
+
+// let leafcount1 = 0;
+// let leafcount2 = 0;
+// let leafcount3 = 0;
+// let leafcount4 = 0;
+
+let counts = [0, 0, 0, 0];
+let leafcounts = [0, 0, 0, 0];
+  
+
+// let clickCount = 0;
+// let clickCount2 = 0;
+let selectedPlotIndex = -1;
+
+let dugPlots = [false, false, false, false];
+let wateredPlots = [false, false, false, false];
+
+
 
 
 function preload(){
@@ -42,13 +84,13 @@ function setup() {
   c.parent('sketch2');  // attach canvas inside the <div id="sketch">
   angle = -PI / 2; // set the day-start state here, once p5 is ready
   target = -PI / 2;
+  computePlotLayout();
 select('#rainBtn').mousePressed(toggleRain);
 select('#dayNightBtn').mousePressed(toggleDayNight);
 playBtn = document.getElementById('playBtn');
   prevBtn = document.getElementById('prev-scene');
   plantCropsBtn = document.getElementById('plantCropsBtn');
   tendGardenBtn = document.getElementById('tendGardenBtn');
-
 setupSeedCards();
 
 if (playBtn) {
@@ -74,18 +116,33 @@ if (playBtn) {
   shovelBtn = document.getElementById('shovelBtn');
 wateringCanBtn = document.getElementById('wateringCanBtn');
 
+// if (shovelBtn) {
+//   shovelBtn.addEventListener('click', () => {
+//     if (clickCount < 4) {
+//       clickCount++;
+//     }
+//   });
+// }
+
+// if (wateringCanBtn) {
+//   wateringCanBtn.addEventListener('click', () => {
+//     if (clickCount2 < 4) {
+//       clickCount2++;
+//     }
+//   });
+// }
 if (shovelBtn) {
   shovelBtn.addEventListener('click', () => {
-    if (plotStage === 'empty') {
-      plotStage = 'dug';
+    if (selectedPlotIndex !== -1) {
+      dugPlots[selectedPlotIndex] = true;
     }
   });
 }
 
 if (wateringCanBtn) {
   wateringCanBtn.addEventListener('click', () => {
-    if (plotStage === 'dug') {
-      plotStage = 'planted';
+    if (selectedPlotIndex !== -1) {
+      wateredPlots[selectedPlotIndex] = true;
     }
   });
 }
@@ -132,7 +189,9 @@ function updateSceneUI() {
 
 function windowResized() {
   resizeCanvas(windowWidth, 600);
+   computePlotLayout();
   setupSeedCards();
+ 
 }
 
 function toggleRain() {
@@ -227,12 +286,6 @@ function drawFarmScene() {
   drawBarn();
   drawFence();
 
-  // fill(222);
-  // noStroke();
-  // textFont(font);
-  // textSize(18);
-  // textAlign(LEFT, BASELINE);
-  // text(words, 30, 230);
 
   if (rain) {
     particles.push(new Particle());
@@ -449,9 +502,9 @@ function drawCropIcon(label, targetX, targetY, targetSize) {
   translate(targetX, targetY);
 
   if (label === 'tomatoes') {
-    const s = targetSize / 80; // was /55 — corrected to the shape's actual ~80px width
+    const s = targetSize / 80; 
     scale(s);
-    translate(-100, -94); // corrected center — was (-97, -85)
+    translate(-100, -94); 
     drawtomato();
   } else if (label === 'carrots') {
     const s = targetSize / 68;
@@ -483,14 +536,15 @@ function guessSeason(label) {
 }
 
 function mousePressed() {
-  if (scene === 'scene3') {
+ if (scene === 'scene3') {
     for (const card of seedCards) {
       if (
         mouseX > card.x && mouseX < card.x + card.w &&
         mouseY > card.y && mouseY < card.y + card.h
       ) {
         selectedCrop = card.label;
-        scene = 'scene5'; // wherever picking a seed should lead
+        selectedPlotIndex = plotCrops.indexOf(card.label); // which plot this crop belongs to
+        scene = 'scene5';
         updateSceneUI();
       }
     }
@@ -498,12 +552,13 @@ function mousePressed() {
 }
 
 function drawScene4() {
-  background(90, 150, 110);
-  fill(255);
-  textSize(32);
-  textAlign(CENTER, CENTER);
-  textFont(font);
-  text('Tend Garden', width / 2, height / 2);
+  // background(90, 150, 110);
+  // fill(255);
+  // textSize(32);
+  // textAlign(CENTER, CENTER);
+  // textFont(font);
+  // text('Tend Garden', width / 2, height / 2);
+  drawFarmScene();
 }
 
 function drawtomato() {
@@ -581,9 +636,9 @@ function drawsunflower() {
   ellipse(350, 300, 50, 20);
   ellipse(250, 300, 50, 20);
   fill(97, 60, 0);
-  ellipse(300, 300, 60, 60);
+  ellipse(300, 300, 70, 70);
   fill(120, 79, 13);
-  ellipse(300, 300, 45, 45);
+  ellipse(300, 300, 55, 55);
 }
 
 function drawScene5() {
@@ -618,7 +673,32 @@ angle = lerp(angle, target, 0.03);
   fill(111, 237, 104);
   rect(0, 230, 1600, 400);
 
-  drawGardenPlot();
+//   drawGardenPlot();
+// if (clickCount >= 1) shovel1();
+// if (clickCount >= 2) shovel2();
+// if (clickCount >= 3) shovel3();
+// if (clickCount >= 4) shovel4();
+
+// if (clickCount2 >= 1) leaf1();
+// if (clickCount2 >= 2) leaf2();
+// if (clickCount2 >= 3) leaf3();
+// if (clickCount2 >= 4) leaf4();
+// drawGardenPlot();
+// if (dugPlots[0]) shovel1();
+// if (dugPlots[1]) shovel2();
+// if (dugPlots[2]) shovel3();
+// if (dugPlots[3]) shovel4();
+
+// if (wateredPlots[0]) leaf1();
+// if (wateredPlots[1]) leaf2();
+// if (wateredPlots[2]) leaf3();
+// if (wateredPlots[3]) leaf4();
+drawGardenPlot();
+for (let i = 0; i < plotCount; i++) {
+  if (dugPlots[i]) drawDirtMound(i);
+  if (wateredPlots[i]) growLeaves(i);
+}
+
  
   if (rain) {
     particles.push(new Particle());
@@ -634,78 +714,182 @@ angle = lerp(angle, target, 0.03);
   }
 }
 
+
+
 function drawGardenPlot() {
-  const topY = 250;
-  const bottomY = 550;
-  const topStartX = 250;
-  const topEndX = 1400;
-  const bottomStartX = 150;
-  const bottomEndX = 1300;
-
-  const plotCount = 4;
-  const gap = 50; // gap between parallelograms, in top-edge units
-
-  const topTotalWidth = topEndX - topStartX;
-  const bottomTotalWidth = bottomEndX - bottomStartX;
-
-  const topSegW = (topTotalWidth - gap * (plotCount - 1)) / plotCount;
-  const bottomSegW = (bottomTotalWidth - gap * (plotCount - 1)) / plotCount;
+  
 
   fill(140, 90, 55);
   noStroke();
 
   for (let i = 0; i < plotCount; i++) {
-    const tx1 = topStartX + i * (topSegW + gap);
-    const tx2 = tx1 + topSegW;
-    const bx1 = bottomStartX + i * (bottomSegW + gap);
-    const bx2 = bx1 + bottomSegW;
+    const x = startX + i * (squareSize + gap);
+    rect(x, y, squareSize, squareSize, 10); // 10px rounded corners
+    const tag = startTag + i * (squareSize + gap);
+    fill(250, 242, 215)
+    stroke(250, 242, 215);
+    strokeWeight(6);
+    strokeJoin(ROUND);
+    rect(tag, 250, 20, 20);
+    triangle(tag, 270, tag+20, 270, tag+10, 285)
+    noStroke();
+    drawCropIcon(plotCrops[i], tag + 10, 260, 20);
+    fill(140, 90, 55);
+  }
+}
+// drawGardenPlot();
+// for (let i = 0; i < plotCount; i++) {
+//   if (dugPlots[i]) drawDirtMound(i);
+//   if (wateredPlots[i]) growLeaves(i);
+// }
 
-    quad(tx1, topY, tx2, topY, bx2, bottomY, bx1, bottomY, );
+// function shovel1(){
+//   fill(117, 73, 42);
+//   if (frameCount % frameDelay === 0 && count1 < totalDirt) {
+//     count1++;
+//   }
+//   for (let i = 0; i < count1; i++){
+//     ellipse(startX+squareSize/5, 513-i*dirtGap, 30, 15)
+//   }
+// }
+
+// function shovel2(){
+//   fill(117, 73, 42);
+
+//   if (frameCount % frameDelay === 0 && count2 < totalDirt) {
+//     count2++;
+//   }
+//   for (let i = 0; i < count2; i++){
+//     ellipse(startX+(2*squareSize/5), 513-i*dirtGap, 30, 15)
+//   }
+// }
+
+// function shovel3(){
+//   fill(117, 73, 42);
+
+//   if (frameCount % frameDelay === 0 && count3 < totalDirt) {
+//     count3++;
+//   }
+//   for (let i = 0; i < count3; i++){
+//     ellipse(startX+(3*squareSize/5), 513-i*dirtGap, 30, 15)
+//   }
+// }
+
+// function shovel4(){
+//   fill(117, 73, 42);
+
+//   if (frameCount % frameDelay === 0 && count4 < totalDirt) {
+//     count4++;
+//   }
+//   for (let i = 0; i < count4; i++){
+//     ellipse(startX+(4*squareSize/5), 513-i*dirtGap, 30, 15)
+//   }
+// }
+
+ 
+// function leaf1(){
+//   if (frameCount % frameDelay === 0 && leafcount1 < totalDirt) {
+//     leafcount1++;
+//   }
+//   for (let i = 0; i < leafcount1; i++){
+//   push();
+//   translate(startX+squareSize/5, 510-i*dirtGap);
+//   rotate((-5.3));
+//   fill('green');
+//   ellipse(-5, 0, 18, 7);
+//   rotate((-2));
+//   fill('green')
+//   ellipse(5, 0, 18,7);
+//   pop();
+//   }
+// }
+
+// function leaf2(){
+//   if (frameCount % frameDelay === 0 && leafcount2 < totalDirt) {
+//     leafcount2++;
+//   }
+//   for (let i = 0; i < leafcount2; i++){
+//   push();
+//   translate(startX+2*squareSize/5, 510-i*dirtGap);
+//   rotate(-5.3);
+//   fill('green');
+//   ellipse(-5, 0, 18, 7);
+//   rotate(-2);
+//   fill('green')
+//   ellipse(5, 0, 18,7);
+//   pop();
+//   }
+// }
+
+// function leaf3(){
+//   if (frameCount % frameDelay === 0 && leafcount3 < totalDirt) {
+//     leafcount3++;
+//   }
+//   for (let i = 0; i < leafcount3; i++){
+//     push();
+//   translate(startX+3*squareSize/5, 510-i*dirtGap);
+//   rotate(-5.3);
+//   fill('green');
+//   ellipse(-5, 0, 18, 7);
+//   rotate(-2);
+//   fill('green')
+//   ellipse(5, 0, 18,7);
+//   pop();
+//   }
+// }
+
+// function leaf4(){
+//   if (frameCount % frameDelay === 0 && leafcount4 < totalDirt) {
+//     leafcount4++;
+//   }
+//   for (let i = 0; i < leafcount4; i++){
+//     push();
+//   translate(startX+4*squareSize/5, 510-i*dirtGap);
+//   rotate(-5.3);
+//   fill('green');
+//   ellipse(-5, 0, 18, 7);
+//   rotate(-2);
+//   fill('green')
+//   ellipse(5, 0, 18,7);
+//   pop();
+//   }
+// }
+
+function drawDirtMound(i) {
+  fill(117, 73, 42);
+  if (frameCount % frameDelay === 0 && counts[i] < totalDirt) {
+    counts[i]++;
+  }
+  const plotX = startX + i * (squareSize + gap);
+  const centerX = plotX + squareSize / 2;
+  for (let j = 0; j < counts[i]; j++) {
+    ellipse(centerX, 513 - j * dirtGap, 30, 15);
   }
 }
 
-function drawPlants() {
+function growLeaves(i) {
+  if (frameCount % frameDelay === 0 && leafcounts[i] < totalDirt) {
+    leafcounts[i]++;
+  }
 
-  if (plotStage !== "planted") return;
+  const plotX = startX + i * (squareSize + gap);
+  const centerX = plotX + squareSize / 2;
 
-  for (let i = 0; i < 6; i++) {
-
-    let x = 300 + i * 130;
-    let y = 380;
-
+  for (let j = 0; j < leafcounts[i]; j++) {
     push();
-
-    if (selectedCrop == "tomatoes") {
-      translate(x, y);
-      scale(0.5);
-      translate(-100,-95);
-      drawtomato();
-    }
-
-    else if (selectedCrop == "carrots") {
-      translate(x,y);
-      scale(0.45);
-      translate(-300,-90);
-      drawcarrot();
-    }
-
-    else if (selectedCrop == "cabbage") {
-      translate(x,y);
-      scale(0.55);
-      translate(-100,-300);
-      drawcabbage();
-    }
-
-    else if (selectedCrop == "sunflower") {
-      translate(x,y);
-      scale(0.3);
-      translate(-300,-300);
-      angleMode(DEGREES);
-      drawsunflower();
-      angleMode(RADIANS);
-    }
-
+    translate(centerX, 510 - j * dirtGap);
+    rotate(-5.3);
+    fill('green');
+    ellipse(-5, 0, 18, 7);
+    rotate(-2);
+    fill('green');
+    ellipse(5, 0, 18, 7);
     pop();
   }
 }
 
+function computePlotLayout() {
+  startX = width * 0.1;
+  endX = width * 0.9;
+  squareSize = (endX - startX - gap * (plotCount - 1)) / plotCount;
+}

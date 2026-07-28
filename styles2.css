@@ -115,25 +115,31 @@ body {
 
 .tool-btn {
   position: absolute;
-  left: 40px;
+  left: 30px;
   width: 70px;
   height: 70px;
-  font-size: 32px;
-  border: 3px solid #2d6a4f;
+  border: none;
   border-radius: 50%;
-  background: #fff;
+  background: #f7ecce;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   transition: transform 0.15s ease, background 0.15s ease;
   display: none;
   z-index: 10;
+  display: flex; /* keep, but overridden to 'none' via JS when hidden */
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
-.tool-btn:hover {
-  background: #eaf4ec;
-  transform: scale(1.08);
+.tool-btn img {
+  display: block;
+  width: 110%;
+  height: 110%;
+  object-fit: contain;
+  pointer-events: none; /* clicks pass through to the button, not the image */
 }
 
-#shovelBtn { top: 240px; }
-#wateringCanBtn { top: 330px; }
+#shovelBtn { top: 500px; }
+#wateringCanBtn { top: 580px; }
 
