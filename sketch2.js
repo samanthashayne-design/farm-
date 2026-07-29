@@ -13,6 +13,9 @@ let shovelBtn, wateringCanBtn;
 let plotStage = 'empty'; 
 let startTag = 175
 
+let dirtProgress = [0, 0, 0, 0];   // how many mounds are currently drawn, per plot
+let leafProgress = [0, 0, 0, 0];
+
 const plotCrops = ['sunflower', 'carrots', 'cabbage', 'tomatoes'];
 
 let startX, endX, squareSize;
@@ -43,6 +46,11 @@ let frameDelay = 5
 
 let counts = [0, 0, 0, 0];
 let leafcounts = [0, 0, 0, 0];
+
+let columnStops = 4; 
+let growth = [0, 0, 0, 0];  
+let maxGrowth = 100;
+let growthPerColumn = maxGrowth / columnStops;
   
 
 // let clickCount = 0;
@@ -52,6 +60,12 @@ let selectedPlotIndex = -1;
 let dugPlots = [false, false, false, false];
 let wateredPlots = [false, false, false, false];
 
+
+
+function subColumnX(plotIndex, colIndex) {
+  const plotX = startX + plotIndex * (squareSize + gap);
+  return plotX + (colIndex + 1) * (squareSize / (columnStops + 1));
+}
 
 
 
@@ -91,6 +105,7 @@ playBtn = document.getElementById('playBtn');
   prevBtn = document.getElementById('prev-scene');
   plantCropsBtn = document.getElementById('plantCropsBtn');
   tendGardenBtn = document.getElementById('tendGardenBtn');
+  backBtn = document.getElementById('back-scene');
 setupSeedCards();
 
 if (playBtn) {
@@ -99,10 +114,16 @@ if (playBtn) {
       updateSceneUI();
     });
   }
+if (backBtn) {
+  backBtn.addEventListener('click', () =>{
+    scene = 'scene3';
+    updateSceneUI();
+  })
+}
 
   if (prevBtn) {
     prevBtn.addEventListener('click', () => {
-      scene = 'farm';
+      scene = 'scene2';
       updateSceneUI();
     });
   }
@@ -116,24 +137,11 @@ if (playBtn) {
   shovelBtn = document.getElementById('shovelBtn');
 wateringCanBtn = document.getElementById('wateringCanBtn');
 
-// if (shovelBtn) {
-//   shovelBtn.addEventListener('click', () => {
-//     if (clickCount < 4) {
-//       clickCount++;
-//     }
-//   });
-// }
 
-// if (wateringCanBtn) {
-//   wateringCanBtn.addEventListener('click', () => {
-//     if (clickCount2 < 4) {
-//       clickCount2++;
-//     }
-//   });
-// }
 if (shovelBtn) {
   shovelBtn.addEventListener('click', () => {
-    if (selectedPlotIndex !== -1) {
+    if (selectedPlotIndex !== -1 && counts[selectedPlotIndex] < columnStops) {
+      counts[selectedPlotIndex]++;
       dugPlots[selectedPlotIndex] = true;
     }
   });
@@ -141,18 +149,55 @@ if (shovelBtn) {
 
 if (wateringCanBtn) {
   wateringCanBtn.addEventListener('click', () => {
-    if (selectedPlotIndex !== -1) {
+    if (selectedPlotIndex === -1) return;
+
+    if (scene === 'scene5' && dugPlots[selectedPlotIndex] && leafcounts[selectedPlotIndex] < columnStops) {
+      leafcounts[selectedPlotIndex]++;
       wateredPlots[selectedPlotIndex] = true;
+    } else if (scene === 'scene4' && dugPlots[selectedPlotIndex]) {
+      growth[selectedPlotIndex] = min(growth[selectedPlotIndex] + growthPerColumn, maxGrowth);
     }
   });
 }
-  }
+}
+
+// if (wateringCanBtn) {
+//   wateringCanBtn.addEventListener('click', () => {
+//     if (selectedPlotIndex !== -1 && dugPlots[selectedPlotIndex]) {
+//       growth[selectedPlotIndex] = min(growth[selectedPlotIndex] + growthPerColumn, maxGrowth);
+//       wateredPlots[selectedPlotIndex] = true;
+//     }
+//   });
+// }
+//   }
+
+// if (wateringCanBtn) {
+//   wateringCanBtn.addEventListener('click', () => {
+//     if (selectedPlotIndex !== -1 && dugPlots[selectedPlotIndex]) {
+//       growth[selectedPlotIndex] = min(growth[selectedPlotIndex] + growthPerColumn, maxGrowth);
+//       wateredPlots[selectedPlotIndex] = true;
+//       leafcounts[selectedPlotIndex]++;
+//     }
+//   });
+// }
+//   }
+// if (wateringCanBtn) {
+//   wateringCanBtn.addEventListener('click', () => {
+//     if (selectedPlotIndex !== -1 && leafcounts[selectedPlotIndex] < columnStops) {
+//       leafcounts[selectedPlotIndex]++;
+//       wateredPlots[selectedPlotIndex] = true;
+//     }
+//   });
+// }
+//   }
 
   if (tendGardenBtn) {
     tendGardenBtn.addEventListener('click', () => {
-      scene = 'scene4';
-      updateSceneUI();
-    });
+  scene = 'scene4';
+  updateSceneUI();
+});
+   
+  
   
     const playBtn = document.getElementById('playBtn');
     if (playBtn) {
@@ -171,7 +216,9 @@ if (wateringCanBtn) {
     }
 }
 updateSceneUI(); // set correct initial visibility (farm scene)
-}
+  }
+
+
 
 
 
@@ -180,12 +227,23 @@ function updateSceneUI() {
   plantCropsBtn.style.display = scene === 'scene2' ? 'block' : 'none';
   tendGardenBtn.style.display = scene === 'scene2' ? 'block' : 'none';
   shovelBtn.style.display = scene === 'scene5' ? 'block' : 'none';
-  wateringCanBtn.style.display = scene === 'scene5' ? 'block' : 'none';
+  wateringCanBtn.style.display = (scene === 'scene5' || scene === 'scene4') ? 'block' : 'none';
+  backBtn.style.display = (scene === 'scene5' || scene === 'scene4') ? 'block' : 'none';
 
-  if (scene === 'scene5') {
-    plotStage = 'empty'; // fresh plot every time you arrive
-  }
+  if (scene === 'scene5') plotStage = 'empty';
 }
+// function updateSceneUI() {
+//   playBtn.style.display = scene === 'farm' ? 'flex' : 'none';
+//   plantCropsBtn.style.display = scene === 'scene2' ? 'block' : 'none';
+//   tendGardenBtn.style.display = scene === 'scene2' ? 'block' : 'none';
+//   shovelBtn.style.display = scene === 'scene5' ? 'block' : 'none';
+//   wateringCanBtn.style.display = scene === 'scene5' ? 'block' : 'none';
+//    backBtn.style.display = scene === 'scene5' ? 'block' : 'none';
+
+//   if (scene === 'scene5') {
+//     plotStage = 'empty'; // fresh plot every time you arrive
+//   }
+// }
 
 function windowResized() {
   resizeCanvas(windowWidth, 600);
@@ -203,6 +261,11 @@ function toggleDayNight() {
     words = words === "good morning! what would you like to do today?"
   ? "good night!"
   : "good morning! what would you like to do today?";
+  for (let i = 0; i < plotCount; i++) {
+    if (dugPlots[i]) {
+      growth[i] = min(growth[i] + 10, maxGrowth);
+    }
+  }
   }
 
 class Particle {
@@ -549,16 +612,53 @@ function mousePressed() {
       }
     }
   }
+
+  if (scene === 'scene4') {
+    for (let i = 0; i < plotCount; i++) {
+      const px = startX + i * (squareSize + gap);
+      if (mouseX > px && mouseX < px + squareSize && mouseY > y && mouseY < y + squareSize) {
+        selectedPlotIndex = i;
+      }
+    }
+  }
 }
 
 function drawScene4() {
-  // background(90, 150, 110);
-  // fill(255);
-  // textSize(32);
-  // textAlign(CENTER, CENTER);
-  // textFont(font);
-  // text('Tend Garden', width / 2, height / 2);
-  drawFarmScene();
+  angle = lerp(angle, target, 0.03);
+  let sky = lerpColor(color(25, 26, 102), color(130, 210, 255), map(sin(angle), -1, 1, 1, 0));
+  if (rain) sky = lerpColor(sky, color(60, 60, 70), 0.6);
+  background(sky);
+
+  noStroke();
+  fill(rain ? color(180, 170, 100) : color(255, 227, 43));
+  ellipse(1000 + cos(angle) * 200, 270 + sin(angle) * 200, 90);
+  fill(240, 240, 221);
+  let mx = 400 - cos(angle) * 200, my = 270 - sin(angle) * 200;
+  ellipse(mx, my, 90);
+  fill(sky);
+  circle(mx + 30, my - 10, 89);
+
+  drawHills();
+  noStroke();
+  fill(111, 237, 104);
+  rect(0, 230, 1600, 400);
+
+  drawGardenPlot();
+  for (let i = 0; i < plotCount; i++) {
+    if (dugPlots[i]) drawMaturePlant(i);
+  }
+
+  if (rain) { particles.push(new Particle()); particles.push(new Particle()); particles.push(new Particle()); }
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].update(); particles[i].show();
+    if (particles[i].isFinished()) particles.splice(i, 1);
+  }
+
+  if (rain && frameCount % frameDelay === 0) {
+    for (let i = 0; i < plotCount; i++) {
+      if (dugPlots[i]) growth[i] = min(growth[i] + 1, maxGrowth);
+    }
+  }
 }
 
 function drawtomato() {
@@ -673,26 +773,7 @@ angle = lerp(angle, target, 0.03);
   fill(111, 237, 104);
   rect(0, 230, 1600, 400);
 
-//   drawGardenPlot();
-// if (clickCount >= 1) shovel1();
-// if (clickCount >= 2) shovel2();
-// if (clickCount >= 3) shovel3();
-// if (clickCount >= 4) shovel4();
 
-// if (clickCount2 >= 1) leaf1();
-// if (clickCount2 >= 2) leaf2();
-// if (clickCount2 >= 3) leaf3();
-// if (clickCount2 >= 4) leaf4();
-// drawGardenPlot();
-// if (dugPlots[0]) shovel1();
-// if (dugPlots[1]) shovel2();
-// if (dugPlots[2]) shovel3();
-// if (dugPlots[3]) shovel4();
-
-// if (wateredPlots[0]) leaf1();
-// if (wateredPlots[1]) leaf2();
-// if (wateredPlots[2]) leaf3();
-// if (wateredPlots[3]) leaf4();
 drawGardenPlot();
 for (let i = 0; i < plotCount; i++) {
   if (dugPlots[i]) drawDirtMound(i);
@@ -712,6 +793,13 @@ for (let i = 0; i < plotCount; i++) {
       particles.splice(i, 1);
     }
   }
+  if (rain && frameCount % frameDelay === 0) {
+  for (let i = 0; i < plotCount; i++) {
+    if (dugPlots[i]) {
+      growth[i] = min(growth[i] + 1, maxGrowth);
+    }
+  }
+}
 }
 
 
@@ -737,147 +825,73 @@ function drawGardenPlot() {
     fill(140, 90, 55);
   }
 }
-// drawGardenPlot();
-// for (let i = 0; i < plotCount; i++) {
-//   if (dugPlots[i]) drawDirtMound(i);
-//   if (wateredPlots[i]) growLeaves(i);
-// }
 
-// function shovel1(){
-//   fill(117, 73, 42);
-//   if (frameCount % frameDelay === 0 && count1 < totalDirt) {
-//     count1++;
-//   }
-//   for (let i = 0; i < count1; i++){
-//     ellipse(startX+squareSize/5, 513-i*dirtGap, 30, 15)
-//   }
-// }
-
-// function shovel2(){
-//   fill(117, 73, 42);
-
-//   if (frameCount % frameDelay === 0 && count2 < totalDirt) {
-//     count2++;
-//   }
-//   for (let i = 0; i < count2; i++){
-//     ellipse(startX+(2*squareSize/5), 513-i*dirtGap, 30, 15)
-//   }
-// }
-
-// function shovel3(){
-//   fill(117, 73, 42);
-
-//   if (frameCount % frameDelay === 0 && count3 < totalDirt) {
-//     count3++;
-//   }
-//   for (let i = 0; i < count3; i++){
-//     ellipse(startX+(3*squareSize/5), 513-i*dirtGap, 30, 15)
-//   }
-// }
-
-// function shovel4(){
-//   fill(117, 73, 42);
-
-//   if (frameCount % frameDelay === 0 && count4 < totalDirt) {
-//     count4++;
-//   }
-//   for (let i = 0; i < count4; i++){
-//     ellipse(startX+(4*squareSize/5), 513-i*dirtGap, 30, 15)
-//   }
-// }
-
- 
-// function leaf1(){
-//   if (frameCount % frameDelay === 0 && leafcount1 < totalDirt) {
-//     leafcount1++;
-//   }
-//   for (let i = 0; i < leafcount1; i++){
-//   push();
-//   translate(startX+squareSize/5, 510-i*dirtGap);
-//   rotate((-5.3));
-//   fill('green');
-//   ellipse(-5, 0, 18, 7);
-//   rotate((-2));
-//   fill('green')
-//   ellipse(5, 0, 18,7);
-//   pop();
-//   }
-// }
-
-// function leaf2(){
-//   if (frameCount % frameDelay === 0 && leafcount2 < totalDirt) {
-//     leafcount2++;
-//   }
-//   for (let i = 0; i < leafcount2; i++){
-//   push();
-//   translate(startX+2*squareSize/5, 510-i*dirtGap);
-//   rotate(-5.3);
-//   fill('green');
-//   ellipse(-5, 0, 18, 7);
-//   rotate(-2);
-//   fill('green')
-//   ellipse(5, 0, 18,7);
-//   pop();
-//   }
-// }
-
-// function leaf3(){
-//   if (frameCount % frameDelay === 0 && leafcount3 < totalDirt) {
-//     leafcount3++;
-//   }
-//   for (let i = 0; i < leafcount3; i++){
-//     push();
-//   translate(startX+3*squareSize/5, 510-i*dirtGap);
-//   rotate(-5.3);
-//   fill('green');
-//   ellipse(-5, 0, 18, 7);
-//   rotate(-2);
-//   fill('green')
-//   ellipse(5, 0, 18,7);
-//   pop();
-//   }
-// }
-
-// function leaf4(){
-//   if (frameCount % frameDelay === 0 && leafcount4 < totalDirt) {
-//     leafcount4++;
-//   }
-//   for (let i = 0; i < leafcount4; i++){
-//     push();
-//   translate(startX+4*squareSize/5, 510-i*dirtGap);
-//   rotate(-5.3);
-//   fill('green');
-//   ellipse(-5, 0, 18, 7);
-//   rotate(-2);
-//   fill('green')
-//   ellipse(5, 0, 18,7);
-//   pop();
-//   }
-// }
 
 function drawDirtMound(i) {
   fill(117, 73, 42);
-  if (frameCount % frameDelay === 0 && counts[i] < totalDirt) {
-    counts[i]++;
+
+  const target = counts[i] * totalDirt;
+  if (frameCount % frameDelay === 0 && dirtProgress[i] < target) {
+    dirtProgress[i]++;
   }
-  const plotX = startX + i * (squareSize + gap);
-  const centerX = plotX + squareSize / 2;
-  for (let j = 0; j < counts[i]; j++) {
-    ellipse(centerX, 513 - j * dirtGap, 30, 15);
+
+  for (let n = 0; n < dirtProgress[i]; n++) {
+    const col = Math.floor(n / totalDirt);
+    const row = n % totalDirt;
+    const cx = subColumnX(i, col);
+    ellipse(cx, 505 - row * dirtGap, 30, 15);   // back to 513
   }
 }
 
+// function growLeaves(i) {
+//   const target = Math.floor((growth[i] / maxGrowth) * columnStops * totalDirt);
+//   if (frameCount % frameDelay === 0 && leafProgress[i] < target) {
+//     leafProgress[i]++;
+//   }
+
+//   for (let n = 0; n < leafProgress[i]; n++) {
+//     const col = Math.floor(n / totalDirt);
+//     const row = n % totalDirt;
+//     const cx = subColumnX(i, col);
+//     push();
+//     translate(cx, 502 - row * dirtGap);   // back to 510
+//     rotate(-5.3);
+//     fill('green');
+//     ellipse(-5, 0, 18, 7);
+//     rotate(-2);
+//     fill('green');
+//     ellipse(5, 0, 18, 7);
+//     pop();
+//   }
+// } 
+// function drawDirtMound(i) {
+//   fill(117, 73, 42);
+
+//   const target = counts[i] * totalDirt;
+//   if (frameCount % frameDelay === 0 && dirtProgress[i] < target) {
+//     dirtProgress[i]++;
+//   }
+
+//   for (let n = 0; n < dirtProgress[i]; n++) {
+//     const col = Math.floor(n / totalDirt);
+//     const row = n % totalDirt;
+//     const cx = subColumnX(i, col);
+//     ellipse(cx, 505 - row * dirtGap, 30, 15);
+//   }
+// }
+
 function growLeaves(i) {
-  if (frameCount % frameDelay === 0 && leafcounts[i] < totalDirt) {
-    leafcounts[i]++;
+  const target = leafcounts[i] * totalDirt;
+  if (frameCount % frameDelay === 0 && leafProgress[i] < target) {
+    leafProgress[i]++;
   }
 
-  const plotX = startX + i * (squareSize + gap);
-  const centerX = plotX + squareSize / 2;
-
-  for (let j = 0; j < leafcounts[i]; j++) {
+  for (let n = 0; n < leafProgress[i]; n++) {
+    const col = Math.floor(n / totalDirt);
+    const row = n % totalDirt;
+    const cx = subColumnX(i, col);
     push();
-    translate(centerX, 510 - j * dirtGap);
+    translate(cx, 502 - row * dirtGap);
     rotate(-5.3);
     fill('green');
     ellipse(-5, 0, 18, 7);
@@ -892,4 +906,103 @@ function computePlotLayout() {
   startX = width * 0.1;
   endX = width * 0.9;
   squareSize = (endX - startX - gap * (plotCount - 1)) / plotCount;
+
+
+// function growLeaves(i) {
+//   const target = Math.floor((growth[i] / maxGrowth) * columnStops * totalDirt);
+//   if (frameCount % frameDelay === 0 && leafProgress[i] < target) {
+//     leafProgress[i]++;
+//   }
+
+//   for (let n = 0; n < leafProgress[i]; n++) {
+//     const col = Math.floor(n / totalDirt);
+//     const row = n % totalDirt;
+//     const cx = subColumnX(i, col);
+//     push();
+//     translate(cx, 510 - row * dirtGap);
+//     rotate(-5.3);
+//     fill('green');
+//     ellipse(-5, 0, 18, 7);
+//     rotate(-2);
+//     fill('green');
+//     ellipse(5, 0, 18, 7);
+//     pop();
+//   }
+}
+
+
+// function drawMaturePlant(i) {
+//   const plotX = startX + i * (squareSize + gap);
+//   const cx = plotX + squareSize / 2;
+//   const baseY = 513;
+//   const g = growth[i];
+//   if (g <= 0) return;
+
+//   const stemFrac = constrain(map(g, 0, 50, 0, 1), 0, 1);
+//   const stemHeight = stemFrac * 80;
+
+//   push();
+//   translate(cx, baseY);
+//   stroke(60, 130, 60);
+//   strokeWeight(4);
+//   line(0, 0, 0, -stemHeight);
+//   noStroke();
+
+//   if (g > 10) {
+//     const leafFrac = constrain(map(g, 10, 50, 0, 1), 0, 1);
+//     fill(70, 160, 70);
+//     push(); translate(0, -stemHeight * 0.5); rotate(-30);
+//     ellipse(-10 * leafFrac, 0, 24 * leafFrac, 10 * leafFrac); pop();
+//     push(); translate(0, -stemHeight * 0.7); rotate(30);
+//     ellipse(10 * leafFrac, 0, 24 * leafFrac, 10 * leafFrac); pop();
+//   }
+
+//   if (g > 50 && g <= 75) {
+//     const budFrac = constrain(map(g, 50, 75, 0, 1), 0, 1);
+//     fill(150, 200, 120);
+//     ellipse(0, -stemHeight, 14 * budFrac, 18 * budFrac);
+//   }
+//   pop();
+
+//   if (g > 75) {
+//     const bloomSize = map(g, 75, 100, 20, 60);
+//     drawCropIcon(plotCrops[i], cx, baseY - stemHeight, bloomSize);
+//   }
+// }
+
+function drawMaturePlant(i) {
+  const plotX = startX + i * (squareSize + gap);
+  const cx = plotX + squareSize / 2;
+  const g = growth[i];
+
+  if (g <= 0) return;
+
+  if (g <= 20) {
+    // stage 1 — thin sprout (same as your grow1)
+    fill('green');
+    ellipse(cx, 500, 3, 20);
+
+  } else if (g <= 40) {
+    // stage 2 — small leaf bud (same as your grow2)
+    fill(90, 189, 79);
+    ellipse(cx, 490, 8, 9);
+
+  } else if (g <= 60) {
+    // stage 3 — taller stem + bigger leaf (same as your grow3)
+    fill('green');
+    ellipse(cx, 500, 4, 30);
+    fill(90, 189, 79);
+    ellipse(cx, 485, 9, 10);
+
+  } else if (g <= 80) {
+    // stage 4 — bud forming, stem fully extended
+    fill('green');
+    ellipse(cx, 500, 4, 34);
+    fill(150, 200, 120);
+    ellipse(cx, 478, 14, 18);
+
+  } else {
+    // stage 5 — fully matured, the actual crop
+    drawCropIcon(plotCrops[i], cx, 500, 50);
+  }
 }
