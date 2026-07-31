@@ -1,0 +1,62 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>p5.js & Assets Demo</title>
+    <link rel="stylesheet" href="styles2.css" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+
+    <script src="sketch2.js" defer></script>
+  </head>
+
+  <body>
+   <h1 id="farmTitle">my farm</h1>
+ 
+<div id="nameModal" class="modal">
+  <div class="modal-content">
+    <p>welcome to your new farm! before we get started, what would you
+       like to name it?</p>
+    <input type="text" id="farmNameInput" placeholder="enter a farm name" maxlength="30" autofocus />
+    <button id="nameSubmitBtn">let's go!</button>
+  </div>
+</div>
+<div id="winModal">
+  <p>congrats, your wheelbarrow is all full! you can keep planting
+     + harvesting (maybe try growing plants with environment
+     changes :)), or you can return home and start a new farm.
+     thanks for playing!</p>
+  <div class="modal-buttons">
+    <button id="keepPlayingBtn" class="modal-btn">keep playing</button>
+    <button id="returnHomeBtn" class="modal-btn">restart</button>
+  </div>
+</div>
+    <div id="sketch2">
+       <button id="prev-scene">🏠</button>
+       <button id="helpBtn">?</button>
+       <button id="back-scene">back to seed selection</button>
+       <button id="tend-from-plant">tend garden</button>
+       <button id="wheelbarrowBtn">
+        <img id="wheelbarrowIcon" alt="wheelbarrow" />
+        </button>
+       <button id="plantCropsBtn" class="scene-btn">plant crops</button>
+      <button id="tendGardenBtn" class="scene-btn">tend garden</button>
+      <button id="shovelBtn" class="tool-btn">
+      <img src="Untitled design (25).svg" alt="shovel" />
+      </button>
+      <button id="wateringCanBtn" class="tool-btn">
+        <img src="Untitled design (24).svg" alt="watering can" />
+      </button>
+      <div class="button-row">
+        <button id="rainBtn">🌧️</button>
+        <button id="dayNightBtn">☀️</button>
+         
+
+       
+      </div>
+    </div>
+  </body>
+</html>
